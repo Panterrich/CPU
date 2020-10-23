@@ -13,14 +13,16 @@ void Compiletion(struct Text* input_text, FILE* listing, FILE* code)
     char* buffer = (char*) calloc(input_text->n_lines, sizeof(element_t) + 2 * sizeof(char));
     char* pointer = buffer;
 
-    fprintf(listing, "  Adress   Number     Code     Text\n");
+    fprintf(listing, 
+        "Assembler version: %d\n"
+        "Assembler signature: %X\n\n\n"
+        "  Adress   Number     Code     Text\n", Version, Signature);
 
     for (int index_strings = 0; index_strings < input_text->n_lines; ++index_strings)
     {
         char* command = (char*) calloc(input_text->lines[index_strings].len, sizeof(char));
         char* reg = (char*) calloc(input_text->lines[index_strings].len, sizeof(char));
         double value = NAN;
-        
 
         sscanf((input_text->lines)[index_strings].str, " %s ", command);
         Str_uppercase(command);
@@ -68,7 +70,6 @@ void Compiletion(struct Text* input_text, FILE* listing, FILE* code)
 
                         fprintf(listing, "%8p %8lu %4lu %1lu Unknown mod or register %8s %s\n", count_cmd, cmd, MOD_REG, command, reg);
                     }
-             
                }
 
                 else
@@ -87,7 +88,7 @@ void Compiletion(struct Text* input_text, FILE* listing, FILE* code)
             {
                 fprintf(listing, "%8p %8lu %8lu %8s\n", pointer - buffer, count_cmd, cmd, command);
             }
-         }
+        }
 
         else
         {

@@ -1,3 +1,7 @@
+Assembler version: 3
+Assembler signature: DA
+
+
   Adress   Number     Code     Text
      0x3        1  10 2 97       IN RAX
      0x5        2    10  3       IN
@@ -12,12 +16,5 @@
     0x23       11       33      MUL
     0x24       12       33      MUL
     0x25       13       32      SUB
-    0x28       14  11 2 97      OUT RAX
-    0x2b       15   4 2 97    PURGE RAX
-    0x2e       16  11 2 97      OUT RAX
-    0x30       17     4  3    PURGE
-    0x33       18  11 2 97      OUT RAX
-    0x36       19  11 2 98      OUT RBX
-    0x39       20  11 2 99      OUT RCX
-    0x3b       21    11  3      OUT
-    0x3c       22        0      HLT
+    0x27       14    11  3      OUT
+    0x28       15        0      HLT

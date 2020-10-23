@@ -3,6 +3,8 @@
 
 #define PUUSH(item) Stack_push(&proc->stk, item)
 #define POOP() Stack_pop(&proc->stk)
+#define BYTECODE (proc->bytecode)
+#define REGS  (proc->registers)
 #define RRAX (proc->registers)[0]
 #define RRBX (proc->registers)[1]
 #define RRCX (proc->registers)[2]

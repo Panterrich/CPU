@@ -11,12 +11,5 @@ push rcx
 mul
 mul
 sub
-out rax
-purge rax
-out rax
-purge
-out rax
-out rbx
-out rcx
 out
 hlt

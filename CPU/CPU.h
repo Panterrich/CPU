@@ -63,12 +63,12 @@ enum Registers
 
 //=====================================================
 
-void CPU_construct(struct CPU* proc, FILE* file);
+int CPU_construct(struct CPU* proc, FILE* file);
 
 void CPU_destruct(struct CPU* proc);
 
-void Processing(struct CPU* proc);
+int Processing(struct CPU* proc);
 
-void Operation(struct CPU* proc, int cmd);
+int Operation(struct CPU* proc, int cmd);
 
-void Verification_code(unsigned char* buffer);
+int Verification_code(unsigned char* buffer);

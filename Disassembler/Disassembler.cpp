@@ -21,27 +21,27 @@ void Disassembling(char* buffer, FILE* output)
     assert(buffer != nullptr);
     assert(output != nullptr);
 
-    fprintf(output, "Dissasembler version: %d\n", Version);
-    fprintf(output, "Dissasembler signature: %X\n\n\n", Signature);
-
-
-    fprintf(output, "Code version: %d\n",   buffer[0]);
-    fprintf(output, "Code signature: %X\n", (unsigned char)buffer[1]);
+    fprintf(output, "Disassembler version: %d\n"
+                    "Disassembler signature: %X\n\n\n"
+                    "Code version: %d\n"
+                    "Code signature: %X\n", 
+                    Version, Signature, buffer[0], (unsigned char)buffer[1]);
 
     size_t count_cmd = *(size_t*)(&buffer[10]);
     size_t rip = 18;
 
-    fprintf(output, "  Adress   Number     Code     Text\n");
+    fprintf(output, "  Address  Number cmd     Code     Text\n");
 
-    for (size_t i = 0; i < count_cmd; ++i)
+    for (size_t num_current_cmd = 0; num_current_cmd < count_cmd; ++num_current_cmd)
     {   
         char cmd = buffer[rip];
 
-        fprintf(output, "%8p %8d %8d ", &buffer[rip] - buffer, count_cmd, cmd);
+        fprintf(output, "%9p %11d %8d ", &buffer[rip] - buffer, num_current_cmd + 1, cmd);
 
         if (Unknown_command(cmd))
         {
             fprintf(output, "Unknown command\n");
+            printf("WARNING: UNKNOWN COMMAND - Number current command %d: %s", num_current_cmd, cmd);
             continue;
         }
 
@@ -79,13 +79,17 @@ void Disassembling(char* buffer, FILE* output)
 
                         default:
                             fprintf(output, "unknown register");
+                            printf("WARNING: UNKNOWN REGISTER - CMD: %s, REG: %d", name_code(cmd), buffer[rip + 2]);
+
                             rip += 2 * sizeof(char);
+
                             break;
                     }
                     break;
 
             default: 
                 fprintf(output, "unknown mode");
+                printf("WARNING: UNKNOWN MODE - CMD: %s, MODE: %d", name_code(cmd), buffer[rip + 1]);
                 break;
             }
         }

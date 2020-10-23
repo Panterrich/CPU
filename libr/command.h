@@ -1,6 +1,6 @@
 DEF_COMMAND(HLT,  0,  0x1e3edd86, 0, 
     {
-        exit(0);
+        return 1;
     })
 
 DEF_COMMAND(DUMP, 7,  0x39c100dd, 0, 
@@ -12,33 +12,19 @@ DEF_COMMAND(DUMP, 7,  0x39c100dd, 0,
 
 DEF_COMMAND(PURGE, 4, 0x6fee0dcd, 1, 
     {
-        if ((proc->bytecode)[RIP + 1] == MOD_EMPTY)
+        if (BYTECODE[RIP + 1] == MOD_EMPTY)
         {
             for (int i = 0; i < 4; ++i)
             {
-                (proc->registers)[i] = Poison;
+                REGS[i] = Poison;
             }
 
             RIP += 2 * sizeof(char);
         }
 
-        else if ((proc->bytecode)[RIP + 1] == MOD_REG)
+        else if (BYTECODE[RIP + 1] == MOD_REG)
         {
-            switch ((proc->bytecode)[RIP + 2])
-            {
-            case REG_RAX:
-                RRAX = Poison;
-                break;
-            case REG_RBX:
-                RRBX = Poison;
-                break;
-            case REG_RCX:
-                RRCX = Poison;
-                break;
-            case REG_RDX:
-                RRDX = Poison;
-                break;
-            }
+            REGS[BYTECODE[RIP + 2] - 'a'] = Poison;
 
             RIP += 3 * sizeof(char);
         }
@@ -51,30 +37,16 @@ DEF_COMMAND(IN,   10, 0x2d0b8777, 1,
         element_t element = 0;
         scanf("%lg", &element);
         
-        if ((proc->bytecode)[RIP + 1] == MOD_EMPTY)
+        if (BYTECODE[RIP + 1] == MOD_EMPTY)
         {
             PUUSH(element);
 
             RIP += 2 * sizeof(char);
         }
 
-        else if ((proc->bytecode)[RIP + 1] == MOD_REG)
+        else if (BYTECODE[RIP + 1] == MOD_REG)
         {
-            switch ((proc->bytecode)[RIP + 2])
-            {
-            case REG_RAX:
-                RRAX = element;
-                break;
-            case REG_RBX:
-                RRBX = element;
-                break;
-            case REG_RCX:
-                RRCX = element;
-                break;
-            case REG_RDX:
-                RRDX = element;
-                break;
-            }
+            REGS[BYTECODE[RIP + 2] - 'a'] = element;
 
             RIP += 3 * sizeof(char);
         }
@@ -83,30 +55,16 @@ DEF_COMMAND(IN,   10, 0x2d0b8777, 1,
 
 DEF_COMMAND(OUT,  11, 0xcd3efa96, 1, 
     {
-        if ((proc->bytecode)[RIP + 1] == MOD_EMPTY)
+        if (BYTECODE[RIP + 1] == MOD_EMPTY)
         {
-            printf("Out: %lg \n", POOP());
+            printf("OUT: %lg \n", POOP());
 
             RIP += 2 * sizeof(char);
         }
 
-        else if ((proc->bytecode)[proc->rip + 1] == MOD_REG)
+        else if (BYTECODE[RIP + 1] == MOD_REG)
         {
-            switch ((proc->bytecode)[RIP + 2])
-            {
-            case REG_RAX:
-                printf("Out: %lg \n", RRAX);
-                break;
-            case REG_RBX:
-                printf("Out: %lg \n", RRBX);
-                break;
-            case REG_RCX:
-                printf("Out: %lg \n", RRCX);
-                break;
-            case REG_RDX:
-                printf("Out: %lg \n", RRDX);
-                break;
-            }
+            printf("Out: %lg \n", REGS[BYTECODE[RIP + 2] - 97]);
 
             RIP += 3 * sizeof(char);
         }
@@ -115,30 +73,16 @@ DEF_COMMAND(OUT,  11, 0xcd3efa96, 1,
 
 DEF_COMMAND(PUSH, 20, 0x12e2afe4, 1, 
     {
-        if ((proc->bytecode)[RIP + 1] == MOD_DOUBLE)
+        if (BYTECODE[RIP + 1] == MOD_DOUBLE)
         {
-            PUUSH(*(element_t*)(&(proc->bytecode)[RIP + 2]));
+            PUUSH(*(element_t*)(&BYTECODE[RIP + 2]));
 
             RIP += sizeof(element_t) + 2 * sizeof(char); 
         }
 
-        else if ((proc->bytecode)[RIP + 1] == MOD_REG)
+        else if (BYTECODE[RIP + 1] == MOD_REG)
         {
-            switch ((proc->bytecode)[RIP + 2])
-            {
-            case REG_RAX:
-                PUUSH(RRAX);
-                break;
-            case REG_RBX:
-                PUUSH(RRBX);
-                break;
-            case REG_RCX:
-                PUUSH(RRCX);
-                break;
-            case REG_RDX:
-                PUUSH(RRCX);
-                break;
-            }
+            PUUSH(REGS[BYTECODE[RIP + 2] - 97]);
 
             RIP += 3 * sizeof(char);
         }
@@ -146,31 +90,17 @@ DEF_COMMAND(PUSH, 20, 0x12e2afe4, 1,
 
 DEF_COMMAND(POP,  21, 0xa9527a55, 1, 
     {
-        if ((proc->bytecode)[RIP + 1] == MOD_EMPTY)
+        if (BYTECODE[RIP + 1] == MOD_EMPTY)
         {
             POOP();
 
             RIP += 2 * sizeof(char); 
         }
 
-        else if ((proc->bytecode)[RIP + 1] == MOD_REG)
+        else if (BYTECODE[RIP + 1] == MOD_REG)
         {
-            switch ((proc->bytecode)[RIP + 2])
-            {
-            case REG_RAX:
-                RRAX = POOP();
-                break;
-            case REG_RBX:
-                RRBX = POOP();
-                break;
-            case REG_RCX:
-                RRCX = POOP();
-                break;
-            case REG_RDX:
-                RRDX = POOP();
-                break;
-            }
-
+            REGS[BYTECODE[RIP + 2] - 97] = POOP();
+            
             RIP += 3 * sizeof(char);
         }
     })

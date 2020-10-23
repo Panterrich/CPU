@@ -2,7 +2,7 @@
 
 //==============================================================
 
-void CPU_construct(struct CPU* proc, FILE* file)
+int CPU_construct(struct CPU* proc, FILE* file)
 {
     assert(proc != nullptr);
     assert(file != nullptr);
@@ -12,7 +12,8 @@ void CPU_construct(struct CPU* proc, FILE* file)
     unsigned char buffer[18] = {};
 
     fread(buffer, sizeof(unsigned char), 18, file);
-    Verification_code(buffer);
+
+    if (Verification_code(buffer)) return 1;
 
     proc->size  = *(size_t*)(&buffer[2]);
     proc->n_cmd = *((size_t*)(&buffer[10]));
@@ -26,19 +27,23 @@ void CPU_construct(struct CPU* proc, FILE* file)
     {
         (proc->registers)[i] = NAN;
     }
+
+    return 0;
 }
 
-void Processing(struct CPU* proc)
+int Processing(struct CPU* proc)
 {
     assert(proc != nullptr);
 
     for (size_t i = 0; i < proc->n_cmd; ++i)
     {
-        Operation(proc, (proc->bytecode)[proc->rip]);
+        if (Operation(proc, (proc->bytecode)[proc->rip])) return 1;
     }
+
+    return 0;
 }
 
-void Operation(struct CPU* proc, int cmd)
+int Operation(struct CPU* proc, int cmd)
 {
     assert(proc != nullptr);
     assert(cmd != -1);
@@ -56,10 +61,12 @@ void Operation(struct CPU* proc, int cmd)
     #undef DEF_REG
 
     default:
-        printf("Unknown command, ERROR\n");
-        printf("Code: %X \n", cmd);
-        break;
+        printf("Unknown command, ERROR\n"
+               "Code: %X \n", cmd);
+        return 1;
     }
+
+    return 0;
 }
 
 void CPU_destruct(struct CPU* proc)
@@ -80,23 +87,26 @@ void CPU_destruct(struct CPU* proc)
     RRDX = NAN;
 }
 
-void Verification_code(unsigned char* buffer)
+int Verification_code(unsigned char* buffer)
 {
     assert(buffer != nullptr);
 
     if (Version != buffer[0])
     {
-        printf("WARNING: assembler version doesn't match CPU verision\n");
-        printf("Assembler verison: %d\n", buffer[0]);
-        printf("CPU verison: %d\n", Version);
+        printf("WARNING: assembler version doesn't match CPU verision\n"
+               "Assembler verison: %d\n"
+               "CPU verison: %d\n", buffer[0], Version);
+        return 0;
     }
 
     if (Signature != buffer[1])
     {
-        printf("ERROR: assembler signature  doesn't match CPU signature\n");
-        printf("Assembler signature: %X\n", buffer[1]);
-        printf("CPU signature: %X\n", Signature);
-        abort();
+        printf("ERROR: assembler signature  doesn't match CPU signature\n"
+               "Assembler signature: %X\n"
+               "CPU signature: %X\n", buffer[1], Signature);
+        return 1;
     }
+    
+    return 0;
 }
 
