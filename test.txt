@@ -1,0 +1,22 @@
+in rax ; input a
+in
+pop rbx ; 
+in rcx;
+push rbx
+push rbx
+mul
+push 4
+push rax
+push rcx
+mul
+mul
+sub
+out rax
+purge rax
+out rax
+purge
+out rax
+out rbx
+out rcx
+out
+hlt
