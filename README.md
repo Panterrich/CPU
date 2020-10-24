@@ -9,6 +9,10 @@ Use Makefile
     make CPU
   
     make Disassembler
+
+Or
+
+    make all
   
 Then 
 
