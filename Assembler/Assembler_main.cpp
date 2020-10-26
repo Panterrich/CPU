@@ -17,13 +17,13 @@ int main(int argc, const char* argv[])
     Create_text(input, &input_text);
 
     fclose(input);
-    FILE* listing = fopen("ASM_listing.txt", "wb");
-    FILE* code    = fopen("code.txt",        "wb");
 
-    Compiletion(&input_text, listing, code);
+    struct Label* labels = (struct Label*) calloc(input_text.n_lines, sizeof(struct Label));
 
-    fclose(listing);
-    fclose(code);
 
+    if (Compile_pass(&input_text, labels)) return 1;
+    if (Compile_pass(&input_text, labels)) return 1;
+
+    free(labels);
     Free_memory(&input_text);
 }

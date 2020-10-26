@@ -6,7 +6,7 @@ int main(int argc, const char* argv[])
 {
     FILE* bytecode = fopen(argv[1], "rb");
 
-    if (bytecode == NULL)
+    if (bytecode == nullptr)
     {
         printf("File is not found, ERROR\n");
         return 1;

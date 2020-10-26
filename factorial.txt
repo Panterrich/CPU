@@ -1,0 +1,50 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+in rax  ; Вводим наше n
+
+push 1
+pop rbx ; rbx - наше текущее произведение
+
+push rax
+push 0
+jb :out_negative
+
+call :factorial
+push rbx
+out
+hlt
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+factorial: 
+
+push rax
+push 2
+jb :r
+
+push rax
+push rbx
+mul
+pop rbx
+
+push rax
+push 1
+sub
+pop rax
+
+call :factorial
+ret
+
+ret:
+ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+out_negative:
+push -1
+pop rbx
+push rbx
+out
+hlt
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

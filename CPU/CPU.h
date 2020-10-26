@@ -12,6 +12,7 @@ const unsigned char Signature = 0xDA;
 struct CPU
 {
     struct Stack stk;
+    struct Stack call_stk;
 
     unsigned char* bytecode;
     size_t rip;
@@ -19,7 +20,7 @@ struct CPU
     size_t size;
     size_t n_cmd;
 
-    element_t registers[4];
+    element_t registers[5];
 };
 
 enum Commands 

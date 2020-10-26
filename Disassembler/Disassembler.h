@@ -29,6 +29,6 @@ void Disassembling(char* buffer, FILE* output);
 
 int Unknown_command(char cmd);
 
-const char* name_code(char cmd);
+const char* Name_code(char cmd);
 
 int Argument_command(char cmd);

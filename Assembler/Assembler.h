@@ -12,7 +12,19 @@ const unsigned char Signature = 0xDA;
 
 //============================================================
 
-void Compiletion(struct Text* input_text, FILE* listing, FILE* code);
+struct Label
+{
+    unsigned int hash;
+    size_t address;
+};
+
+//============================================================
+
+int Compile_pass(struct Text* input_text, struct Label* labels);
+
+int Compilation(struct Text* input_text, FILE* listing, FILE* code, struct Label* labels);
+
+int Next_word(char* begin, char* word, size_t* lshift, size_t* rshift);
 
 int Code_cmd(const char* cmd);
 
@@ -23,6 +35,8 @@ unsigned int Hash(const char* cmd);
 void Str_uppercase(char* string);
 
 int Code_reg(const char* reg);
+
+void Free_mem(char* command, char* reg, char* label);
 
 //============================================================
 

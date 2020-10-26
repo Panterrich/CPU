@@ -1,0 +1,165 @@
+in rax   ;;;
+in rbx   ;;; Ввод коэффициентов
+in rcx   ;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;
+
+push rax        ;;;;;;;;
+pop  rdx        ;;;;;;;; Проверка квадратность данного уравнения
+call :is_zero   ;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;
+
+push 1              ;;;;;
+je :line_equation   ;;;;; Проверка возврата функции
+
+;;;;;;;;;;;;;;;;;;;;;;;;;
+
+call :discr         ;;;;; Если уравнение квадратное считаем дискриминант
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+push rdx                            ;;;;;
+push 0                              ;;;;;
+jb :no_roots_of_quadratic_equation  ;;;;;
+
+push rdx                            ;;;;;
+push 0                              ;;;;; Проверка количества корней
+je :one_root_of_quadratic_equation  ;;;;;
+
+push rdx                            ;;;;;
+push 0                              ;;;;;
+ja :two_roots_of_quadratic_equation ;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; и их вывод
+
+no_roots_of_quadratic_equation:
+push 0
+out
+hlt
+
+one_root_of_quadratic_equation:
+push 1
+out
+push rbx
+neg
+push rax
+push 2
+mul
+div
+out
+hlt
+
+two_roots_of_quadratic_equation:
+push 2
+out 
+push rbx
+neg
+push rdx
+sqrt
+sub
+push rax
+push 2
+mul
+div
+out
+push rbx
+neg
+push rdx
+sqrt
+add
+push rax
+push 2
+mul
+div
+out
+hlt
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Функция подсчёта дискриминанта
+
+discr:
+push rbx
+push rbx
+mul
+push 4
+push rax
+push rcx
+mul
+mul
+sub
+pop rdx
+ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Линейное уравнение - частный случай
+
+line_equation:
+push rbx
+pop  rdx
+call :is_zero
+
+push 1
+je :is_c_zero
+jmp :one_root_of_line_equation
+
+is_c_zero:
+push rax
+pop  rdx
+call :is_zero
+
+push 1
+je :inf
+jmp :zero_roots
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Вывод корней и их количество (для линейного уравнения)
+
+one_root_of_line_equation:
+push rcx
+neg
+push rbx
+div
+push 1
+pop rex
+push rex
+out
+out
+hlt
+
+inf:
+push -1
+pop rex
+push rex
+out
+hlt
+
+zero_roots:
+push 0
+pop rex
+push rex
+out
+hlt
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Функция сравнения с 0 с точностью до 10^-6
+
+is_zero:
+push rdx
+push 1E-6
+jbe :1
+push 0 
+ret
+
+1: 
+push -1E-6
+push rdx
+jbe :2
+push 0 
+ret
+
+2:
+push 1
+ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

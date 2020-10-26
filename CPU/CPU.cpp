@@ -7,7 +7,8 @@ int CPU_construct(struct CPU* proc, FILE* file)
     assert(proc != nullptr);
     assert(file != nullptr);
 
-    STACK_CONSTUCT(&(proc->stk), 1);
+    STACK_CONSTUCT(&proc->stk,      10);
+    STACK_CONSTUCT(&proc->call_stk, 10);
 
     unsigned char buffer[18] = {};
 
@@ -35,9 +36,13 @@ int Processing(struct CPU* proc)
 {
     assert(proc != nullptr);
 
-    for (size_t i = 0; i < proc->n_cmd; ++i)
+    for (size_t i = 0;; ++i)
     {
         if (Operation(proc, (proc->bytecode)[proc->rip])) return 1;
+
+        // Stack_dump(stdout, &proc->stk);
+        // Stack_dump(stdout, &proc->call_stk);
+        // printf("Registers: %lg %lg %lg %lg \n", (proc->registers)[0], (proc->registers)[1], (proc->registers)[2], (proc->registers)[3]);
     }
 
     return 0;
@@ -76,6 +81,7 @@ void CPU_destruct(struct CPU* proc)
     free(proc->bytecode);
     
     Stack_destruct(&proc->stk);
+    Stack_destruct(&proc->call_stk);
 
     proc->n_cmd = -1;
     proc->rip = -1;
