@@ -53,6 +53,12 @@ int Operation(struct CPU* proc, int cmd)
     assert(proc != nullptr);
     assert(cmd != -1);
 
+    const size_t size_cmd = sizeof(char);
+    const size_t size_mod = sizeof(char);
+    const size_t size_reg = sizeof(char);
+    const size_t size_arg = sizeof(element_t);
+    const size_t size_lbl = sizeof(size_t);
+
     switch (cmd)
     {
     #define DEF_COMMAND(name, number, hash, argc, code) case CMD_##name: code; break;

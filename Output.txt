@@ -4,19 +4,23 @@ Disassembler signature: DA
 
 Code version: 3
 Code signature: DA
-  Address  Number cmd     Code     Text
-     0x12           1       10       IN RAX
-     0x15           2       10       IN 
-     0x17           3       21      POP RBX
-     0x1a           4       10       IN RCX
-     0x1d           5       20     PUSH RBX
-     0x20           6       20     PUSH RBX
-     0x23           7       33      MUL 
-     0x24           8       20     PUSH 4
-     0x2e           9       20     PUSH RAX
-     0x31          10       20     PUSH RCX
-     0x34          11       33      MUL 
-     0x35          12       33      MUL 
-     0x36          13       32      SUB 
-     0x37          14       11      OUT 
-     0x39          15        0      HLT 
+  Address  Number cmd     Code       Text
+        0           1    10 2 97       IN RAX
+      0x3           2    20 1  1     PUSH 1
+      0xd           3    21 2 98      POP RBX
+     0x10           4    20 2 98     PUSH RBX
+     0x13           5    37 4 44     CALL 44
+     0x1d           6    20 2 98     PUSH RBX
+     0x20           7    20 2 97     PUSH RAX
+     0x23           8    35 4 37       JE 37
+     0x2d           9    30 4 19      JMP 19
+     0x37          10    11 2 97      OUT RAX
+     0x3a          11    11 2 98      OUT RBX
+     0x3d          12     0           HLT
+     0x3e          13    20 2 98     PUSH RBX
+     0x41          14    20 1  1     PUSH 1
+     0x4b          15    41           ADD
+     0x4c          16    21 2 98      POP RBX
+     0x4f          17    20 2 98     PUSH RBX
+     0x52          18    43           MUL
+     0x53          19    38           RET

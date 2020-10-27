@@ -104,7 +104,7 @@ je :is_c_zero
 jmp :one_root_of_line_equation
 
 is_c_zero:
-push rax
+push rcx
 pop  rdx
 call :is_zero
 

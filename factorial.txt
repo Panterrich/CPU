@@ -20,7 +20,7 @@ factorial:
 
 push rax
 push 2
-jb :r
+jb :ret
 
 push rax
 push rbx
