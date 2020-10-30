@@ -39,9 +39,10 @@ int Compilation(struct Text* input_text, FILE* listing, FILE* code, struct Label
 
     for (int index_strings = 0; index_strings < input_text->n_lines; ++index_strings)
     {   
-        char* label   = (char*) calloc((input_text->lines)[index_strings].len, sizeof(char));
-        char* command = (char*) calloc((input_text->lines)[index_strings].len, sizeof(char));
-        char* reg     = (char*) calloc((input_text->lines)[index_strings].len, sizeof(char));
+        char* label        = (char*) calloc((input_text->lines)[index_strings].len, sizeof(char));
+        char* command      = (char*) calloc((input_text->lines)[index_strings].len, sizeof(char));
+        char* reg          = (char*) calloc((input_text->lines)[index_strings].len, sizeof(char));
+        char* current_word = (char*) calloc((input_text->lines)[index_strings].len, sizeof(char));
 
         char*  current_pointer = (input_text->lines)[index_strings].str;
         size_t current_lshift = 0;
@@ -49,7 +50,7 @@ int Compilation(struct Text* input_text, FILE* listing, FILE* code, struct Label
 
         double value = NAN;
 
-        if (Next_word(current_pointer, label,   &current_lshift, &current_rshift))
+        if (Next_word(current_pointer, label, &current_lshift, &current_rshift))
         {
             if (label[current_rshift - current_lshift - 1] == ':')
             {
@@ -86,9 +87,11 @@ int Compilation(struct Text* input_text, FILE* listing, FILE* code, struct Label
 
         if (Next_word(current_pointer, command, &current_lshift, &current_rshift))
         {
+            current_pointer += current_rshift;
+
             Str_uppercase(command);
             char cmd = Code_cmd(command);
-
+        
             if (cmd != -1)
             {   
                 ++count_cmd;
@@ -97,111 +100,423 @@ int Compilation(struct Text* input_text, FILE* listing, FILE* code, struct Label
 
                 if (Arg_command(cmd))
                 {
-                    if (sscanf(current_pointer, " %*s %lg", &value) != 1)
+                    Next_word(current_pointer, current_word, &current_lshift, &current_rshift);
+                    
+                    if (current_word[0] == ':')
                     {
-                        sscanf(current_pointer, " %*s %s", reg);
-                        Str_uppercase(reg);
-
-                        if (reg[0] == ':')
+                        if ((cmd >= 30) && (cmd < 38))
                         {
-                            if ((cmd >= 30) && (cmd < 38))
+                            Str_uppercase(current_word);
+                            unsigned int label_hash = Hash(current_word + 1);
+                            unsigned int plug = 0;
+
+                            for (int i = 0; i < count_label; ++i)
                             {
-                                unsigned int label_hash = Hash(reg + 1);
-                                unsigned int dummy = 0;
-
-                                for (int i = 0; i < count_label; ++i)
-                                {
-                                    if (label_hash == labels[i].hash)
-                                    {
-                                        *pointer = MOD_POINTER;
-                                        ++pointer;
-
-                                        *((size_t*)pointer) = labels[i].address;
-                                        pointer += sizeof(size_t);
-
-                                        dummy = 1;
-
-                                        fprintf(listing, "%#8x %8lu %3lu %lu %2lu %8s :%s \n", 
-                                                pointer - buffer - 2 * sizeof(char) - sizeof(size_t),
-                                                count_cmd, cmd, MOD_POINTER, labels[i].address, command, reg + 1);
-                                    }
-                                }
-
-                                if (dummy == 0)
+                                if (label_hash == labels[i].hash)
                                 {
                                     *pointer = MOD_POINTER;
                                     ++pointer;
 
-                                    *((size_t*)pointer) = -1;
+                                    *((size_t*)pointer) = labels[i].address;
                                     pointer += sizeof(size_t);
+
+                                    plug = 1;
+
+                                    fprintf(listing, "%#8x %8lu %3lu %lu %2lu %6s :%s \n", 
+                                            pointer - buffer - 2 * sizeof(char) - sizeof(size_t),
+                                            count_cmd, cmd, MOD_POINTER, labels[i].address, command, current_word + 1);
                                 }
                             }
 
-                            else 
+                            if (plug == 0)
                             {
-                                fprintf(listing, "%#8x %8lu %5lu This command don't use label: %8s %s \n", 
-                                        pointer - buffer - sizeof(char),
-                                        count_cmd, cmd, command, reg + 1);
-                                                
-                                printf("ERROR: This command don't use label: %8s %s \n", command, reg + 1);
+                                *pointer = MOD_POINTER;
+                                ++pointer;
+
+                                *((size_t*)pointer) = -1;
+                                pointer += sizeof(size_t);
+                            }
+                        }
+
+                        else 
+                        {
+                            fprintf(listing, "%#8x %8lu %5lu This command don't use label: %8s %s \n", 
+                                    pointer - buffer - sizeof(char),
+                                    count_cmd, cmd, command, reg + 1);
+                                            
+                            printf("ERROR: This command don't use label: %8s %s \n", command, reg + 1);
+
+                            return 1;
+                        }
+
+                        Free_mem(command, reg, label, current_word);
+                        continue;
+                    }
+
+                    else if (current_word[0] == '[')
+                    {
+                        int argc = sscanf(current_pointer, " %s %s %s", reg, current_word, label);
+
+                        switch (argc)
+                        {
+                        case 1:
+                            {
+                            sscanf(current_pointer, " %s", reg);
+                            
+                            if (reg[strlen(reg) - 1] != ']')
+                            {
+                                fprintf(listing, "%#8x %8lu %6lu Syntax error %8s %s\n",
+                                    pointer - buffer - sizeof(char),  
+                                    count_cmd, cmd , command, reg + 1);
+                                printf("ERROR: Syntax error: %8s %s \n", command, reg + 1);
 
                                 return 1;
                             }
 
-                            Free_mem(command, reg, label);
-                            continue;
-                        }
+                            else 
+                            {
+                                reg[strlen(reg) - 1] = '\0';
+                                Str_uppercase(reg);
 
-                        char number_register = Code_reg(reg);
+                                char number_register = Code_reg(reg + 1);
 
-                        if (number_register != -1)
+                                if (number_register != -1)
+                                {
+                                    *pointer = MOD_R0R;
+                                    ++pointer;
+
+                                    *pointer = number_register;
+                                    ++pointer;
+
+                                    fprintf(listing, "%#8x %8lu %3lu %1lu %2lu %8s %s\n", 
+                                            pointer - buffer - 3 * sizeof(char),
+                                            count_cmd, cmd, MOD_R0R, number_register, command, reg + 1);
+                                    
+                                }
+
+                                else if (sscanf(reg, "%lg", &value ) == 1)
+                                {
+                                    *pointer = MOD_RA0;
+                                    ++pointer;
+                                    
+                                    *((element_t*)pointer) = value;
+                                    pointer += sizeof(element_t);
+
+                                    fprintf(listing, "%#8x %8lu %3lu %1lu %2lg %8s %lg\n", 
+                                            pointer - buffer - sizeof(element_t) - 2 * sizeof(char),
+                                            count_cmd, cmd, MOD_RA0, value,  command, value);
+                                }
+                                
+                                else 
+                                {
+                                    fprintf(listing, "%#8x %8lu %6lu Syntax error %8s %s\n",
+                                            pointer - buffer - sizeof(char),  
+                                            count_cmd, cmd , command, reg + 1);
+                                    printf("ERROR: Syntax error: %8s %s \n", command, reg + 1);
+
+                                    return 1;
+                                }
+
+                            }
+
+                            break;
+                            }
+
+                        case 3:
                         {
-                            *pointer = (char)MOD_REG;
-                            ++pointer;
+                            if (current_word[0] != '+')
+                            {
+                                fprintf(listing, "%#8x %8lu %6lu Syntax error %8s  %3s %1s %4s\n",
+                                    pointer - buffer - sizeof(char),  
+                                    count_cmd, cmd , command, reg, current_word, label);
+                                printf("ERROR: Syntax error: %s %s %s %s \n", command, reg, current_word, label);
 
-                            *pointer = number_register;
-                            ++pointer;
+                                return 1;
+                            }
 
-                            fprintf(listing, "%#8x %8lu %3lu %1lu %2lu %8s %s\n", 
-                                    pointer - buffer - 3 * sizeof(char),
-                                    count_cmd, cmd, MOD_REG, number_register, command, reg);
+                            if (label[strlen(label) - 1] != ']')
+                            {
+                                fprintf(listing, "%#8x %8lu %6lu Syntax error %8s  %3s %1s %4s\n",
+                                    pointer - buffer - sizeof(char),  
+                                    count_cmd, cmd , command, reg + 1, current_word, label);
+                                printf("ERROR: Syntax error: %s %s %s %s \n", command, reg + 1, current_word, label);
+
+                                return 1;
+                            }
+
+                            else
+                            {
+                                label[strlen(label) - 1] = '\0';
+                                Str_uppercase(reg);
+                                Str_uppercase(label);
+
+                                char number_register = Code_reg(reg + 1);
+
+                                if (number_register != -1)
+                                {
+                                    if (sscanf(label, "%lg", &value ) == 1)
+                                    {
+                                        *pointer = MOD_RAR;
+                                        ++pointer;
+
+                                        *((element_t*)pointer) = value;
+                                        pointer += sizeof(element_t);
+
+                                        *pointer = number_register;
+                                        ++pointer;
+
+                                        fprintf(listing, "%#8x %8lu %2lu %1lu %2lg %1lu %8s %3lg %1lu \n", 
+                                            pointer - buffer - sizeof(element_t) - 3 * sizeof(char),
+                                            count_cmd, cmd, MOD_RAR, value, number_register,  command, value, reg + 1);
+                                    }
+                                    else
+                                    {
+                                        fprintf(listing, "%#8x %8lu %6lu Syntax error %8s  %3s %1s %4s\n",
+                                                pointer - buffer - sizeof(char),  
+                                                count_cmd, cmd , command, reg + 1, current_word, label);
+                                        printf("ERROR: Syntax error: %s %s %s %s \n", command, reg + 1, current_word, label);
+
+                                        return 1;
+                                    }
+                                }
+
+                                else
+                                {
+                                    number_register = Code_reg(label);
+
+                                    if (number_register != -1)
+                                    {
+                                        if (sscanf(reg + 1, "%lg", &value ) == 1)
+                                        {
+                                            *pointer = MOD_RAR;
+                                            ++pointer;
+
+                                            *((element_t*)pointer) = value;
+                                            pointer += sizeof(element_t);
+
+                                            *pointer = number_register;
+                                            ++pointer;
+
+                                            fprintf(listing, "%#8x %8lu %2lu %1lu %2lg %1lu %8s %3lg %1lu \n", 
+                                                pointer - buffer - sizeof(element_t) - 3 * sizeof(char),
+                                                count_cmd, cmd, MOD_RAR, value, number_register,  command, value, label);
+                                        }
+
+                                        else
+                                        {
+                                            fprintf(listing, "%#8x %8lu %6lu Syntax error %8s  %3s %1s %4s\n",
+                                                    pointer - buffer - sizeof(char),  
+                                                    count_cmd, cmd , command, reg + 1, current_word, label);
+                                            printf("ERROR: Syntax error: %s %s %s %s \n", command, reg + 1, current_word, label);
+
+                                            return 1;
+                                        }
+                                    }
+                                    
+
+                                    else 
+                                    {
+                                        fprintf(listing, "%#8x %8lu %6lu Syntax error %8s  %3s %1s %4s\n",
+                                                pointer - buffer - sizeof(char),  
+                                                count_cmd, cmd , command, reg + 1, current_word, label);
+                                        printf("ERROR: Syntax error: %s %s %s %s \n", command, reg + 1, current_word, label);
+
+                                        return 1;
+                                    }
+
+                                }
+                            }
                         }
-                        
-                        else if ((cmd == CMD_POP) || (cmd == CMD_PURGE) || (cmd == CMD_IN) || (cmd == CMD_OUT))
+                            break;
+                            
+                        default:
                         {
-                            *pointer = (char)MOD_EMPTY;
-                            ++pointer;
-
-                            fprintf(listing, "%#8x %8lu %5lu %2lu %8s\n",
-                                    pointer - buffer - 2 * sizeof(char),
-                                    count_cmd, cmd, MOD_EMPTY, command);
-                        }
-
-                        else
-                        {
-                            *pointer = (char)MOD_REG;
-                            ++pointer;
-
-                            fprintf(listing, "%#8x %8lu %4lu %1lu Unknown mod or register %8s %s\n",
-                                    pointer - buffer - 2 * sizeof(char),  
-                                    count_cmd, cmd, MOD_REG, command, reg);
-                            printf("ERROR: Unknown mod or register: %8s %s \n", command, reg);
+                            fprintf(listing, "%#8x %8lu %6lu Unknown error %8s  %3s %1s %4s\n",
+                                    pointer - buffer - sizeof(char),  
+                                    count_cmd, cmd , command, reg + 1, current_word, label);
+                            printf("ERROR: Unknown error: %8s %3s %1s %4s \n", command, reg + 1, current_word, label);
 
                             return 1;
                         }
-                }
-
-                    else
-                    {
-                        *pointer = MOD_DOUBLE;
-                        ++pointer;
-
-                        *((element_t*)pointer) = value;
-                        pointer += sizeof(element_t);
+                        }
+                    }
                     
-                        fprintf(listing, "%#8x %8lu %3lu %1lu %2lg %8s %lg\n", 
-                                pointer - buffer - sizeof(element_t) - 2 * sizeof(char),
-                                count_cmd, cmd, MOD_DOUBLE, value,  command, value);
+                    else
+                    {   
+                        int argc = sscanf(current_pointer, " %s %s %s", reg, current_word, label);
+
+                        switch (argc)
+                        {
+                        case -1:
+                        case 0:
+                        {
+                            if ((cmd == CMD_POP) || (cmd == CMD_PURGE) || (cmd == CMD_IN) || (cmd == CMD_OUT))
+                            {
+                                *pointer = (char)MOD_EMPTY;
+                                ++pointer;
+
+                                fprintf(listing, "%#8x %8lu %5lu %2lu %8s\n",
+                                        pointer - buffer - 2 * sizeof(char),
+                                        count_cmd, cmd, MOD_EMPTY, command);
+                            }
+
+                            else
+                            {
+                                fprintf(listing, "%#8x %8lu %4lu %1lu this cmd don't have empty mod %8s %s\n",
+                                        pointer - buffer - sizeof(char),  
+                                        count_cmd, cmd, MOD_EMPTY, command, reg);
+                                printf("ERROR: Unknown mod or register: %8s %s \n", command, reg);
+
+                                return 1;
+                            }
+                            break;
+                        }
+                            
+                        case 1:
+                        {
+                            sscanf(current_pointer, " %s", reg);
+                            Str_uppercase(reg);
+
+                            char number_register = Code_reg(reg);
+
+                            if (number_register != -1)
+                            {
+                                *pointer = MOD_00R;
+                                ++pointer;
+
+                                *pointer = number_register;
+                                ++pointer;
+
+                                fprintf(listing, "%#8x %8lu %3lu %1lu %2lu %8s %s\n", 
+                                        pointer - buffer - 3 * sizeof(char),
+                                        count_cmd, cmd, MOD_00R, number_register, command, reg);
+                            }
+
+                            else if (sscanf(reg, "%lg", &value ) == 1)
+                            { 
+                                *pointer = MOD_0A0;
+                                ++pointer;
+                                    
+                                *((element_t*)pointer) = value;
+                                pointer += sizeof(element_t);
+
+                                fprintf(listing, "%#8x %8lu %3lu %1lu %2lg %8s %lg\n", 
+                                        pointer - buffer - sizeof(element_t) - 2 * sizeof(char),
+                                        count_cmd, cmd, MOD_0A0, value,  command, value);
+                            }
+                            
+                            else
+                            {
+                                fprintf(listing, "%#8x %8lu %6lu Syntax error %8s %s\n",
+                                        pointer - buffer - sizeof(char),  
+                                        count_cmd, cmd , command, reg);
+                                printf("ERROR: Syntax error: %8s %s \n", command, reg);
+
+                                    return 1;
+                            }
+                            break;
+                        }
+                    
+                        case 3:
+                        {
+                            if (current_word[0] != '+')
+                            {
+                                fprintf(listing, "%#8x %8lu %6lu Syntax error %8s  %3s %1s %4s\n",
+                                        pointer - buffer - sizeof(char),  
+                                        count_cmd, cmd , command, reg, current_word, label);
+                                printf("ERROR: Syntax error: %8s %3s %1s %4s \n", command, reg, current_word, label);
+
+                                return 1;
+                            }
+
+                            else
+                            {   
+                                Str_uppercase(reg);
+                                Str_uppercase(label);
+
+                                char number_register = Code_reg(reg);
+
+                                if (number_register != -1)
+                                {
+                                    if (sscanf(label, "%lg", &value ) == 1)
+                                    {
+                                        *pointer = MOD_0AR;
+                                        ++pointer;
+
+                                        *((element_t*)pointer) = value;
+                                        pointer += sizeof(element_t);
+
+                                        *pointer = number_register;
+                                        ++pointer;
+
+                                        fprintf(listing, "%#8x %8lu %2lu %1lu %2lg %1lu %8s %3lg %1lu \n", 
+                                                pointer - buffer - sizeof(element_t) - 3 * sizeof(char),
+                                                count_cmd, cmd, MOD_0AR, value, number_register,  command, value, reg);
+                                    }
+                                    else
+                                    {
+                                        fprintf(listing, "%#8x %8lu %6lu Syntax error %8s  %3s %1s %4s\n",
+                                                pointer - buffer - sizeof(char),  
+                                                count_cmd, cmd , command, reg, current_word, label);
+                                        printf("ERROR: Syntax error: %8s %3s %1s %4s \n", command, reg, current_word, label);
+
+                                        return 1;
+                                    }
+                                }
+
+                                number_register = Code_reg(label);
+
+                                if (number_register != -1)
+                                {
+                                    if (sscanf(reg, "%lg", &value ) == 1)
+                                    {
+                                        *pointer = MOD_0AR;
+                                        ++pointer;
+
+                                        *((element_t*)pointer) = value;
+                                        pointer += sizeof(element_t);
+
+                                        *pointer = number_register;
+                                        ++pointer;
+
+                                        fprintf(listing, "%#8x %8lu %2lu %1lu %2lg %1lu %8s %3lg %1lu \n", 
+                                            pointer - buffer - sizeof(element_t) - 3 * sizeof(char),
+                                            count_cmd, cmd, MOD_0AR, value, number_register,  command, value, label);
+                                    }
+                                    else
+                                    {
+                                        fprintf(listing, "%#8x %8lu %6lu Syntax error %8s  %3s %1s %4s\n",
+                                                pointer - buffer - sizeof(char),  
+                                                count_cmd, cmd , command, reg, current_word, label);
+                                        printf("ERROR: Syntax error: %8s %3s %1s %4s \n", command, reg, current_word, label);
+
+                                        return 1;
+                                    }
+                                }
+
+                                else 
+                                {
+                                    fprintf(listing, "%#8x %8lu %6lu Syntax error %8s  %3s %1s %4s\n",
+                                            pointer - buffer - sizeof(char),  
+                                            count_cmd, cmd , command, reg, current_word, label);
+                                    printf("ERROR: Syntax error: %8s %3s %1s %4s \n", command, reg, current_word, label);
+
+                                    return 1;
+                                }
+                            }
+                            break;
+                        }
+
+                        default:
+                        {
+                            fprintf(listing, "%#8x %8lu %6lu Unknown error %8s  %3s %1s %4s\n",
+                                    pointer - buffer - sizeof(char),  
+                                    count_cmd, cmd , command, reg, current_word, label);
+                            printf("ERROR: Unknown error: %8s %3s %1s %4s \n", command, reg, current_word, label);
+
+                            return 1;
+                        }
+                        }
                     }
                 }
 
@@ -224,7 +539,7 @@ int Compilation(struct Text* input_text, FILE* listing, FILE* code, struct Label
             }
         }
 
-        Free_mem(command, reg, label);
+        Free_mem(command, reg, label, current_word);
     }
 
     size = pointer - buffer;
@@ -240,16 +555,18 @@ int Compilation(struct Text* input_text, FILE* listing, FILE* code, struct Label
 
     return 0;
 }
-        
-void Free_mem(char* command, char* reg, char* label)
+
+void Free_mem(char* command, char* reg, char* label, char* current_word)
 {
     free(command);
     free(reg);
     free(label);
+    free(current_word);
 
-    command = nullptr;
-    reg     = nullptr;
-    label   = nullptr;
+    command      = nullptr;
+    reg          = nullptr;
+    label        = nullptr;
+    current_word = nullptr;
 }
 
 int Code_cmd(const char* cmd)
@@ -341,6 +658,11 @@ unsigned int Hash(const char* cmd)
 
 int Next_word(char* begin, char* word, size_t* lshift, size_t* rshift)
 {
+    assert(begin  != nullptr);
+    assert(word   != nullptr);
+    assert(lshift != nullptr);
+    assert(rshift != nullptr);
+
     *lshift = 0;
     *rshift = 0;
 
@@ -356,3 +678,4 @@ int Next_word(char* begin, char* word, size_t* lshift, size_t* rshift)
         return 1;
     }
 }
+

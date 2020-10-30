@@ -36,7 +36,7 @@ void Str_uppercase(char* string);
 
 int Code_reg(const char* reg);
 
-void Free_mem(char* command, char* reg, char* label);
+void Free_mem(char* command, char* reg, char* label, char* current_word);
 
 //============================================================
 

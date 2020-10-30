@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <assert.h>
+
 //==============================================================
 
 const char Version = 3;
@@ -13,6 +14,7 @@ struct CPU
 {
     struct Stack stk;
     struct Stack call_stk;
+    element_t* RAM;
 
     unsigned char* bytecode;
     size_t rip;

@@ -4,6 +4,7 @@
 #define PUUSH(item)     Stack_push(&proc->stk, item)
 #define POOP()          Stack_pop(&proc->stk)
 #define CALL_STACK      (proc->call_stk)
+#define CRAM            (proc->RAM)
 #define BYTECODE        (proc->bytecode)
 #define REGS            (proc->registers)
 #define RRAX            (proc->registers)[0]

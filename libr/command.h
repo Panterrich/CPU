@@ -13,21 +13,22 @@ DEF_COMMAND(DUMP, 7,  0x39c100dd, 0,
 
 DEF_COMMAND(PURGE, 4, 0x6fee0dcd, 1, 
     {
-        if (CODE_MOD == MOD_EMPTY)
+        switch(CODE_MOD)
         {
-            for (int i = 0; i < 4; ++i)
-            {
-                REGS[i] = Poison;
-            }
+            case MOD_EMPTY:
+                for (int i = 0; i < 4; ++i)
+                {
+                    REGS[i] = Poison;
+                }
 
-            RIP += size_cmd + size_mod;
-        }
+                RIP += size_cmd + size_mod;
+                break;
 
-        else if (CODE_MOD == MOD_REG)
-        {
-            REGS[NUM_REG(0)] = Poison;
+            case MOD_00R:
+                REGS[NUM_REG(0)] = Poison;
 
-            RIP += size_cmd + size_mod + size_reg;
+                RIP += size_cmd + size_mod + size_reg;
+                break;
         }
     })
 
@@ -37,72 +38,118 @@ DEF_COMMAND(IN,   10, 0x2d0b8777, 1,
 
         element_t element = 0;
         scanf("%lg", &element);
-        
-        if (CODE_MOD == MOD_EMPTY)
+
+        switch(CODE_MOD)
         {
-            PUUSH(element);
+            case MOD_EMPTY:
+                PUUSH(element);
 
-            RIP += size_cmd + size_mod;
+                RIP += size_cmd + size_mod;
+                break;
+
+            case MOD_00R:
+
+                REGS[NUM_REG(0)] = element;
+
+                RIP += size_cmd + size_mod + size_reg;
+                break;
         }
-
-        else if (CODE_MOD == MOD_REG)
-        {
-            REGS[NUM_REG(0)] = element;
-
-            RIP += size_cmd + size_mod + size_reg;
-        }
-
     })
 
 DEF_COMMAND(OUT,  11, 0xcd3efa96, 1, 
-    {
-        if (CODE_MOD == MOD_EMPTY)
+    {   
+        switch(CODE_MOD)
         {
-            printf("OUT: %lg \n", POOP());
+            case MOD_EMPTY:
+                printf("OUT: %lg \n", POOP());
 
-            RIP += size_cmd + size_mod;
+                RIP += size_cmd + size_mod;
+                break;
+
+            case MOD_00R:
+                printf("Out: R%cX = %lg \n", NUM_REG(0) + 'A', REGS[NUM_REG(0)]);
+
+                RIP += size_cmd + size_mod + size_reg;
+                break;
         }
-
-        else if (CODE_MOD == MOD_REG)
-        {
-            printf("Out: R%cX = %lg \n", NUM_REG(0) + 'A' , REGS[NUM_REG(0)]);
-
-            RIP += size_cmd + size_mod + size_reg;
-        }
-
     })
 
 DEF_COMMAND(PUSH, 20, 0x12e2afe4, 1, 
     {
-        if (CODE_MOD == MOD_DOUBLE)
+        switch(BYTECODE[RIP + 1])
         {
-            PUUSH(VALUE(0));
+            case MOD_RAR:
+                PUUSH(CRAM[(int)(VALUE(0) + REGS[NUM_REG(sizeof(element_t))])]);
 
-            RIP += size_cmd + size_mod + size_arg; 
-        }
+                RIP += size_cmd + size_mod + size_arg + size_reg;
+                break;
 
-        else if (CODE_MOD == MOD_REG)
-        {
-            PUUSH(REGS[NUM_REG(0)]);
+            case MOD_R0R:
+                PUUSH(CRAM[(int)REGS[NUM_REG(0)]]);
 
-            RIP += size_cmd + size_mod + size_reg;
+                RIP += size_cmd + size_mod + size_reg;
+                break;
+            
+            case MOD_RA0:
+                PUUSH(CRAM[(int)VALUE(0)]);
+
+                RIP += size_cmd + size_mod + size_arg;
+                break;
+
+            case MOD_00R:
+                PUUSH(REGS[NUM_REG(0)]);
+
+                RIP += size_cmd + size_mod + size_reg;
+                break;
+
+            case MOD_0A0:
+                PUUSH(VALUE(0));
+
+                RIP += size_cmd + size_mod + size_arg; 
+                break;
+            
+            case MOD_0AR:
+                PUUSH(VALUE(0) + REGS[NUM_REG(sizeof(element_t))]);
+
+                RIP += size_cmd + size_mod + size_arg + size_reg; 
+                break;
+
         }
     })
 
 DEF_COMMAND(POP,  21, 0xa9527a55, 1, 
     {
-        if (CODE_MOD == MOD_EMPTY)
+        switch(CODE_MOD)
         {
-            POOP();
+            case MOD_EMPTY:
+                POOP();
 
-            RIP += size_cmd + size_mod; 
-        }
+                RIP += size_cmd + size_mod;
+                break;
 
-        else if (CODE_MOD == MOD_REG)
-        {
-            REGS[NUM_REG(0)] = POOP();
+            case MOD_RAR:
+                CRAM[(int)(VALUE(0) + REGS[NUM_REG(sizeof(element_t))])] = POOP();
+
+                RIP += size_cmd + size_mod + size_arg + size_reg;
+                break;
+
+            case MOD_R0R:
+                CRAM[(int)REGS[NUM_REG(0)]] = POOP();
+
+                RIP += size_cmd + size_mod + size_reg;
+                break;
             
-            RIP += size_cmd + size_mod + size_reg;
+            case MOD_RA0:
+                CRAM[(int)VALUE(0)] = POOP();
+
+                RIP += size_cmd + size_mod + size_arg;
+                break;
+
+            case MOD_00R:
+                REGS[NUM_REG(0)] = POOP();
+
+                RIP += size_cmd + size_mod + size_reg;
+                break;
         }
     })
 
@@ -120,8 +167,7 @@ DEF_COMMAND(JA, 31, 0x5d53e6f3, 1,
         {
             RIP = SHIFT_ON_LABEL;
         }
-
-        else
+        else 
         {
             RIP += size_cmd + size_mod + size_lbl;
         }
@@ -136,7 +182,6 @@ DEF_COMMAND(JAE, 32, 0xfa010a1d, 1,
         {
             RIP = SHIFT_ON_LABEL;
         }
-
         else 
         {
             RIP += size_cmd + size_mod + size_lbl;
@@ -152,7 +197,6 @@ DEF_COMMAND(JB, 33, 0x15dbd7ec, 1,
         {
             RIP = SHIFT_ON_LABEL;
         }
-
         else 
         {
             RIP += size_cmd + size_mod + size_lbl;
@@ -168,7 +212,6 @@ DEF_COMMAND(JBE, 34, 0x70796a7c, 1,
         {
             RIP = SHIFT_ON_LABEL;
         }
-
         else 
         {
             RIP += size_cmd + size_mod + size_lbl;
@@ -184,7 +227,6 @@ DEF_COMMAND(JE, 35, 0x4326b285, 1,
         {
             RIP = SHIFT_ON_LABEL;
         }
-
         else 
         {
             RIP += size_cmd + size_mod + size_lbl;
@@ -200,7 +242,6 @@ DEF_COMMAND(JNE, 36, 0x9cce3533, 1,
         {
             RIP = SHIFT_ON_LABEL;
         }
-
         else 
         {
             RIP += size_cmd + size_mod + size_lbl;
@@ -313,13 +354,59 @@ DEF_COMMAND(SQRT, 54, 0x9cca14cb, 0,
         RIP += size_cmd;
     })
 
-DEF_MOD(MOD_DOUBLE,  1)
-DEF_MOD(MOD_REG,     2)
-DEF_MOD(MOD_EMPTY,   3)
-DEF_MOD(MOD_POINTER, 4)
+DEF_COMMAND(SCREEN, 60, 0x31ef5aa8, 0,
+    {
+        printf("\e[1;1H\e[2J");
+        
+        for (int y = 0; y < 200; y += 2)
+        {
+            for (int x = 0; x < 200; ++x)
+            {
+                if (*((proc->RAM + 1000) + x + y * 200) == 1)
+                {
+                    printf("\x1b[1;37m@\x1b[0m");
+                }
+                else
+                {
+                    printf("\x1b[8;40mE\x1b[0m");
+                }
+                
+            }
+            printf("\n");
+        }
+
+        for (size_t i = 0; i < 9999999; ++i);
+
+        RIP += size_cmd;
+    })
+
+DEF_COMMAND(MEMRES, 61, 0x97444e3d, 0, {
+
+    for (int y = 0; y < 200; ++y)
+    {
+        for (int x = 0; x < 200; ++x)
+        {
+            *((proc->RAM + 1000) + x + y * 200) = 0;    
+        }
+    }
+
+    RIP += size_cmd;
+})
+
+
+DEF_MOD(MOD_EMPTY,   0)
+DEF_MOD(MOD_RAR, 0b111)
+DEF_MOD(MOD_RA0, 0b110)
+DEF_MOD(MOD_R0R, 0b101)
+DEF_MOD(MOD_0AR, 0b011)
+DEF_MOD(MOD_0A0, 0b010)
+DEF_MOD(MOD_00R, 0b001)
+DEF_MOD(MOD_POINTER, 10)
+
 
 DEF_REG(RAX, 97,  0xf49435a3)
 DEF_REG(RBX, 98,  0x4b98744e)
 DEF_REG(RCX, 99,  0xfb88d770)
 DEF_REG(RDX, 100, 0xb178c235)
 DEF_REG(REX, 101, 0xcf2300e1)
+DEF_REG(RFX, 102, 0x8fc280dd)

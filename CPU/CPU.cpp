@@ -10,6 +10,8 @@ int CPU_construct(struct CPU* proc, FILE* file)
     STACK_CONSTUCT(&proc->stk,      10);
     STACK_CONSTUCT(&proc->call_stk, 10);
 
+    proc->RAM = (element_t*) calloc(powl(2, 24), sizeof(element_t));
+
     unsigned char buffer[18] = {};
 
     fread(buffer, sizeof(unsigned char), 18, file);
@@ -43,6 +45,7 @@ int Processing(struct CPU* proc)
         // Stack_dump(stdout, &proc->stk);
         // Stack_dump(stdout, &proc->call_stk);
         // printf("Registers: %lg %lg %lg %lg \n", (proc->registers)[0], (proc->registers)[1], (proc->registers)[2], (proc->registers)[3]);
+
     }
 
     return 0;
@@ -85,13 +88,17 @@ void CPU_destruct(struct CPU* proc)
     assert(proc != nullptr);
 
     free(proc->bytecode);
+    free(proc->RAM);
     
     Stack_destruct(&proc->stk);
     Stack_destruct(&proc->call_stk);
 
+    proc->bytecode = nullptr;
+    proc->RAM      = nullptr;
+    
     proc->n_cmd = -1;
-    proc->rip = -1;
-    proc->size = -1;
+    proc->rip   = -1;
+    proc->size  = -1;
 
     RRAX = NAN;
     RRBX = NAN;

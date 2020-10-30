@@ -59,19 +59,24 @@ void Disassembling(char* buffer, FILE* output)
                     rip += sizeof(char) + sizeof(size_t);
                     break;
 
-                case MOD_DOUBLE: 
-                    fprintf(output, "%1d %2lg %8s %lg\n", MOD_DOUBLE, *(element_t*)(&buffer[rip + 2]), Name_code(cmd), *(element_t*)(&buffer[rip + 2]));
+                case MOD_RA0: 
+                    fprintf(output, "%1d %2lg %8s [%lg]\n", MOD_RA0, *(element_t*)(&buffer[rip + 2]), Name_code(cmd), *(element_t*)(&buffer[rip + 2]));
                     rip += sizeof(char) + sizeof(element_t);
                     break;
 
-                case MOD_REG:
+                case MOD_0A0: 
+                    fprintf(output, "%1d %2lg %8s %lg\n", MOD_0A0, *(element_t*)(&buffer[rip + 2]), Name_code(cmd), *(element_t*)(&buffer[rip + 2]));
+                    rip += sizeof(char) + sizeof(element_t);
+                    break;
+
+                case MOD_00R:
                     switch (buffer[rip + 2])
                     {
                         #define DEF_COMMAND(name, number, hash, argc, code)
                         #define DEF_MOD(name, number)
                         #define DEF_REG(name, num, hash)                                                  \
                             case num:                                                                     \
-                                fprintf(output, "%1d %2d %8s %s\n", MOD_REG, num, Name_code(cmd), #name); \
+                                fprintf(output, "%1d %2d %8s %s\n", MOD_00R, num, Name_code(cmd), #name); \
                                 rip += 2 * sizeof(char);                                                  \
                                 break;
 
@@ -90,14 +95,94 @@ void Disassembling(char* buffer, FILE* output)
                             break;
                     }
                     break;
+                
+                case MOD_R0R:
+                    switch (buffer[rip + 2])
+                    {
+                        #define DEF_COMMAND(name, number, hash, argc, code)
+                        #define DEF_MOD(name, number)
+                        #define DEF_REG(name, num, hash)                                                  \
+                            case num:                                                                     \
+                                fprintf(output, "%1d %2d %8s [%s]\n", MOD_R0R, num, Name_code(cmd), #name); \
+                                rip += 2 * sizeof(char);                                                  \
+                                break;
 
-            default: 
-                fprintf(output, "unknown mode\n");
-                printf("WARNING: UNKNOWN MODE - CMD: %s, MODE: %d\n",  Name_code(cmd), buffer[rip + 1]);
-                break;
-            }
+                        #include "../libr/command.h"
 
+                        #undef DEF_COMMAND
+                        #undef DEF_MOD
+                        #undef DEF_REG
+
+                        default:
+                            fprintf(output, "unknown register\n");
+                            printf("WARNING: UNKNOWN REGISTER - CMD: %s, REG: %d\n", Name_code(cmd), buffer[rip + 2]);
+
+                            rip += 2 * sizeof(char);
+
+                            break;
+                    }
+                    break;
+                
+
+                case MOD_RAR:
+                    switch (*(&buffer[rip + 2] + sizeof(element_t)))
+                    {
+                        #define DEF_COMMAND(name, number, hash, argc, code)
+                        #define DEF_MOD(name, number)
+                        #define DEF_REG(name, num, hash)                                                                   \
+                            case num:                                                                                      \
+                                fprintf(output, "%1d %2lg %2d %8s [%2lg + %-s]\n", MOD_R0R, *(element_t*)(&buffer[rip + 2]), num, Name_code(cmd), *(element_t*)(&buffer[rip + 2], #name));\
+                                rip += 2 * sizeof(char);                                                                   \
+                                break;
+
+                        #include "../libr/command.h"
+
+                        #undef DEF_COMMAND
+                        #undef DEF_MOD
+                        #undef DEF_REG
+
+                        default:
+                            fprintf(output, "unknown register\n");
+                            printf("WARNING: UNKNOWN REGISTER - CMD: %s, REG: %d\n", Name_code(cmd), buffer[rip + 2]);
+
+                            rip += 2 * sizeof(char);
+
+                            break;
+                    }
+                    break;
+                
+                case MOD_0AR:
+                    switch (*(&buffer[rip + 2] + sizeof(element_t)))
+                    {
+                        #define DEF_COMMAND(name, number, hash, argc, code)
+                        #define DEF_MOD(name, number)
+                        #define DEF_REG(name, num, hash)                                                                   \
+                            case num:                                                                                      \
+                                fprintf(output, "%1d %2lg %2d %8s %2lg + %-s \n", MOD_R0R, *(element_t*)(&buffer[rip + 2]), num, Name_code(cmd), *(element_t*)(&buffer[rip + 2], #name));\
+                                rip += 2 * sizeof(char);                                                                   \
+                                break;
+
+                        #include "../libr/command.h"
+
+                        #undef DEF_COMMAND
+                        #undef DEF_MOD
+                        #undef DEF_REG
+
+                        default:
+                            fprintf(output, "unknown register\n");
+                            printf("WARNING: UNKNOWN REGISTER - CMD: %s, REG: %d\n", Name_code(cmd), buffer[rip + 2]);
+
+                            rip += 2 * sizeof(char);
+
+                            break;
+                    }
+                    break;
             
+                default: 
+                    fprintf(output, "unknown mode\n");
+                    printf("WARNING: UNKNOWN MODE - CMD: %s, MODE: %d\n",  Name_code(cmd), buffer[rip + 1]);
+                    break;
+            }
         }
 
         else

@@ -1,0 +1,253 @@
+in rax ; R - радиус
+memres
+
+push 0
+pop rbx ; x = 0
+
+push rax
+pop rcx ; y = R
+
+push 1
+push 2
+push rax
+mul
+sub
+pop rdx ; delta = 1 - 2*rax
+
+push 0 
+pop rex; error = 0
+
+drawing:
+screen
+
+push rcx
+push 0
+jb :h
+
+push rcx
+pop rax 
+
+point1begin:
+push rcx
+push 0
+jb :point1end
+
+push 1000
+push 100
+push rbx
+add
+push 100
+push rcx
+add
+push 200
+mul
+add
+add
+pop rfx
+push 1
+pop [rfx]
+
+push rcx
+push 1
+sub
+pop rcx
+
+jmp :point1begin
+point1end:
+push rax
+pop rcx
+
+
+
+point2begin:
+push rcx
+push 0
+jb :point2end
+
+push 1000
+push 100
+push rbx
+add
+push 100
+push rcx
+sub
+push 200
+mul
+add
+add
+pop rfx
+push 1
+pop [rfx]
+
+push rcx
+push 1
+sub
+pop rcx
+
+jmp :point2begin
+point2end:
+push rax
+pop rcx
+
+
+
+
+point3begin:
+push rcx
+push 0
+jb :point3end
+
+push 1000
+push 100
+push rbx
+sub
+push 100
+push rcx
+add
+push 200
+mul
+add
+add
+pop rfx
+push 1
+pop [rfx]
+
+push rcx
+push 1
+sub
+pop rcx
+
+jmp :point3begin
+point3end:
+push rax
+pop rcx
+
+point4begin:
+push rcx
+push 0
+jb :point4end
+
+push 1000
+push 100
+push rbx
+sub
+push 100
+push rcx
+sub
+push 200
+mul
+add
+add
+pop rfx
+push 1
+pop [rfx]
+
+push rcx
+push 1
+sub
+pop rcx
+
+jmp :point4begin
+point4end:
+push rax
+pop rcx
+
+push rdx
+push rcx
+add
+push 2
+mul
+push 1
+sub
+pop rex
+
+push rdx
+push 0
+jb :11
+
+01: 
+
+push rdx
+push rbx
+sub
+push 2
+mul
+push 1
+sub
+pop rex
+
+push rdx
+push 0
+ja :21
+
+02:
+push rbx
+push 1
+add
+pop rbx
+
+push rbx
+push rcx
+sub
+push 2
+mul
+push rdx
+add
+pop rdx
+
+push rcx
+push 1
+sub
+pop rcx
+
+jmp :drawing
+
+11: 
+push rex
+push 0
+jbe :12
+jmp :01
+
+12: 
+push rbx
+push 1
+add
+pop rbx
+
+push rbx 
+push 2
+mul
+push 1
+add
+push rdx
+add
+pop rdx
+
+jmp :drawing
+
+21:
+push rex
+push 0
+ja :22
+jmp :02
+
+22:
+push rcx
+push 1
+sub
+pop rcx
+
+push 1
+push 2
+push rcx
+mul
+sub
+push rdx
+add
+pop rdx
+
+jmp :drawing
+
+h:
+screen
+hlt
