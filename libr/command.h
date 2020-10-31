@@ -364,7 +364,7 @@ DEF_COMMAND(SCREEN, 60, 0x31ef5aa8, 0,
             {
                 if (*((proc->RAM + 1000) + x + y * 200) == 1)
                 {
-                    printf("\x1b[1;37m@\x1b[0m");
+                    printf("\x1b[1;34m@\x1b[0m");
                 }
                 else
                 {

@@ -3,18 +3,160 @@ Assembler signature: DA
 
 
   Adress   Number     Code     Text
-     0x3        1  10 2 97       IN RAX
-     0x5        2    10  3       IN
-     0x8        3  21 2 98      POP RBX
-     0xb        4  10 2 99       IN RCX
-     0xe        5  20 2 98     PUSH RBX
-    0x11        6  20 2 98     PUSH RBX
-    0x12        7       33      MUL
-    0x1c        8     20 1     PUSH 4
-    0x1f        9  20 2 97     PUSH RAX
-    0x22       10  20 2 99     PUSH RCX
-    0x23       11       33      MUL
-    0x24       12       33      MUL
-    0x25       13       32      SUB
-    0x27       14    11  3      OUT
-    0x28       15        0      HLT
+       0        1  10 1 97       IN RAX
+     0x3        2       61   MEMRES
+     0x4        3  20 1 97     PUSH RAX
+     0x7        4  20 2  0     PUSH 0
+    0x11        5  35 10 769     JE :EXIT 
+    0x1b        6  20 2  0     PUSH 0
+    0x25        7  21 1 98      POP RBX
+    0x28        8  20 1 97     PUSH RAX
+    0x2b        9  21 1 99      POP RCX
+    0x2e       10  20 2  1     PUSH 1
+    0x38       11  20 2  2     PUSH 2
+    0x42       12  20 1 97     PUSH RAX
+    0x45       13       43      MUL
+    0x46       14       42      SUB
+    0x47       15  21 1 100      POP RDX
+    0x4a       16  20 2  0     PUSH 0
+    0x54       17  21 1 101      POP REX
+    0x57       18  20 1 99     PUSH RCX
+    0x5a       19  20 2  0     PUSH 0
+    0x64       20  33 10 741     JB :H 
+    0x6e       21  20 2 1000     PUSH 1000
+    0x78       22  20 2 100     PUSH 100
+    0x82       23  20 1 98     PUSH RBX
+    0x85       24       41      ADD
+    0x86       25  20 2 100     PUSH 100
+    0x90       26  20 1 99     PUSH RCX
+    0x93       27       41      ADD
+    0x94       28  20 2 200     PUSH 200
+    0x9e       29       43      MUL
+    0x9f       30       41      ADD
+    0xa0       31       41      ADD
+    0xa1       32  21 1 102      POP RFX
+    0xa4       33  20 2  1     PUSH 1
+    0xae       34  21 5 102      POP RFX
+    0xb1       35  20 2 1000     PUSH 1000
+    0xbb       36  20 2 100     PUSH 100
+    0xc5       37  20 1 98     PUSH RBX
+    0xc8       38       41      ADD
+    0xc9       39  20 2 100     PUSH 100
+    0xd3       40  20 1 99     PUSH RCX
+    0xd6       41       42      SUB
+    0xd7       42  20 2 200     PUSH 200
+    0xe1       43       43      MUL
+    0xe2       44       41      ADD
+    0xe3       45       41      ADD
+    0xe4       46  21 1 102      POP RFX
+    0xe7       47  20 2  1     PUSH 1
+    0xf1       48  21 5 102      POP RFX
+    0xf4       49  20 2 1000     PUSH 1000
+    0xfe       50  20 2 100     PUSH 100
+   0x108       51  20 1 98     PUSH RBX
+   0x10b       52       42      SUB
+   0x10c       53  20 2 100     PUSH 100
+   0x116       54  20 1 99     PUSH RCX
+   0x119       55       41      ADD
+   0x11a       56  20 2 200     PUSH 200
+   0x124       57       43      MUL
+   0x125       58       41      ADD
+   0x126       59       41      ADD
+   0x127       60  21 1 102      POP RFX
+   0x12a       61  20 2  1     PUSH 1
+   0x134       62  21 5 102      POP RFX
+   0x137       63  20 2 1000     PUSH 1000
+   0x141       64  20 2 100     PUSH 100
+   0x14b       65  20 1 98     PUSH RBX
+   0x14e       66       42      SUB
+   0x14f       67  20 2 100     PUSH 100
+   0x159       68  20 1 99     PUSH RCX
+   0x15c       69       42      SUB
+   0x15d       70  20 2 200     PUSH 200
+   0x167       71       43      MUL
+   0x168       72       41      ADD
+   0x169       73       41      ADD
+   0x16a       74  21 1 102      POP RFX
+   0x16d       75  20 2  1     PUSH 1
+   0x177       76  21 5 102      POP RFX
+   0x17a       77  20 1 100     PUSH RDX
+   0x17d       78  20 1 99     PUSH RCX
+   0x180       79       41      ADD
+   0x181       80  20 2  2     PUSH 2
+   0x18b       81       43      MUL
+   0x18c       82  20 2  1     PUSH 1
+   0x196       83       42      SUB
+   0x197       84  21 1 101      POP REX
+   0x19a       85  20 1 100     PUSH RDX
+   0x19d       86  20 2  0     PUSH 0
+   0x1a7       87  33 10 557     JB :11 
+   0x1b1       88  20 1 100     PUSH RDX
+   0x1b4       89  20 1 98     PUSH RBX
+   0x1b7       90       42      SUB
+   0x1b8       91  20 2  2     PUSH 2
+   0x1c2       92       43      MUL
+   0x1c3       93  20 2  1     PUSH 1
+   0x1cd       94       42      SUB
+   0x1ce       95  21 1 101      POP REX
+   0x1d1       96  20 1 100     PUSH RDX
+   0x1d4       97  20 2  0     PUSH 0
+   0x1de       98  31 10 649     JA :21 
+   0x1e8       99  20 1 98     PUSH RBX
+   0x1eb      100  20 2  1     PUSH 1
+   0x1f5      101       41      ADD
+   0x1f6      102  21 1 98      POP RBX
+   0x1f9      103  20 1 98     PUSH RBX
+   0x1fc      104  20 1 99     PUSH RCX
+   0x1ff      105       42      SUB
+   0x200      106  20 2  2     PUSH 2
+   0x20a      107       43      MUL
+   0x20b      108  20 1 100     PUSH RDX
+   0x20e      109       41      ADD
+   0x20f      110  21 1 100      POP RDX
+   0x212      111  20 1 99     PUSH RCX
+   0x215      112  20 2  1     PUSH 1
+   0x21f      113       42      SUB
+   0x220      114  21 1 99      POP RCX
+   0x223      115  30 10 87    JMP :DRAWING 
+   0x22d      116  20 1 101     PUSH REX
+   0x230      117  20 2  0     PUSH 0
+   0x23a      118  34 10 590    JBE :12 
+   0x244      119  30 10 433    JMP :01 
+   0x24e      120  20 1 98     PUSH RBX
+   0x251      121  20 2  1     PUSH 1
+   0x25b      122       41      ADD
+   0x25c      123  21 1 98      POP RBX
+   0x25f      124  20 1 98     PUSH RBX
+   0x262      125  20 2  2     PUSH 2
+   0x26c      126       43      MUL
+   0x26d      127  20 2  1     PUSH 1
+   0x277      128       41      ADD
+   0x278      129  20 1 100     PUSH RDX
+   0x27b      130       41      ADD
+   0x27c      131  21 1 100      POP RDX
+   0x27f      132  30 10 87    JMP :DRAWING 
+   0x289      133  20 1 101     PUSH REX
+   0x28c      134  20 2  0     PUSH 0
+   0x296      135  31 10 682     JA :22 
+   0x2a0      136  30 10 488    JMP :02 
+   0x2aa      137  20 1 99     PUSH RCX
+   0x2ad      138  20 2  1     PUSH 1
+   0x2b7      139       42      SUB
+   0x2b8      140  21 1 99      POP RCX
+   0x2bb      141  20 2  1     PUSH 1
+   0x2c5      142  20 2  2     PUSH 2
+   0x2cf      143  20 1 99     PUSH RCX
+   0x2d2      144       43      MUL
+   0x2d3      145       42      SUB
+   0x2d4      146  20 1 100     PUSH RDX
+   0x2d7      147       41      ADD
+   0x2d8      148  21 1 100      POP RDX
+   0x2db      149  30 10 87    JMP :DRAWING 
+   0x2e5      150       60   SCREEN
+   0x2e6      151  20 1 97     PUSH RAX
+   0x2e9      152  20 2  1     PUSH 1
+   0x2f3      153       42      SUB
+   0x2f4      154  21 1 97      POP RAX
+   0x2f7      155  30 10  4    JMP :CIRCLE 
+   0x301      156       60   SCREEN
+   0x302      157        0      HLT
